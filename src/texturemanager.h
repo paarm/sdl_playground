@@ -27,8 +27,8 @@ public:
 	void setSDLRenderer(SDL_Renderer*);
 	SDL_Texture* loadTexture(const string &pathName, const string* alias=nullptr);
 	SDL_Texture* loadTexture(const char *pathName, const char *alias=nullptr);
-	SDL_Texture* getTexture(const string &pathName);
-	SDL_Texture* getTexture(const char*pathName);
+	SDL_Texture* getTexture(const string &name);
+	SDL_Texture* getTexture(const char*name);
 };
 
 
