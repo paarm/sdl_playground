@@ -17,11 +17,16 @@ message(STATUS SDL2 is in ${SDL2_INCLUDE_DIR})
 message(STATUS SDL2_image is in ${SDL2_IMAGE_INCLUDE_DIR})
 
 set (SOURCE 
+src/director.cpp 
+src/director.h 
+src/utils/clock.h 
 src/main.cpp 
 src/node.cpp 
-src/node.h
+src/nodedrawable.cpp 
+src/node.h 
 src/texturemanager.cpp
-src/texturemanager.h
+src/texturemanager.h 
+
 )
 
 add_executable(${PROJECT_NAME} ${SOURCE})

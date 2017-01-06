@@ -1,100 +1,94 @@
 #include <iostream>
 #include <SDL.h>
 #include <SDL_image.h>
-#include "node.h"
-#include "texturemanager.h"
+#include "director.h"
+
 //#include "res_path.h"
 
 /*
  * Lesson 0: Test to make sure SDL is setup properly
  */
+class MyScene : public Node {
+private:
+	NodeDrawable *s=nullptr;
+	NodeDrawable *s_sub=nullptr; 
+protected:
+	void init();
+	virtual void destroy() override;
+	virtual void update(double) override; 
+public:
+	MyScene() : Node("Game Scene") {
+		init();
+	} 
+	using Node::Node;
+};
+
+void MyScene::init() {
+	//Sequence &walkSequence=AnimationManager::getInstance().addSequence("MAN_Walk");
+	//walkSequence.addFrame(0,0,50,50);
+	//walkSequence.addFrame(200,200,50,50);
+	TextureManager &textureManager=TextureManager::getInstance();
+
+	// load texture
+	textureManager.loadTexture("assets/test.png", "test");
+	// reuse loaded texture and make it available via new alias
+	textureManager.loadTexture("assets/test.png", "test2");
+	textureManager.loadTexture("assets/testschwein.png", "testschwein");
+	// setup source frames for this texture
+	for (int i=0;i<11;i++) {
+		textureManager.addFrameToTexture("testschwein","testschwein.Frame"+i,i*32,0,32,32);
+		textureManager.addFrameSequence("testschwein.Walk")
+									->addTextureFrame(textureManager.getTextureFrame("testschwein.Frame"+i));
+	}
+
+	textureManager.addFrameToTexture("test","Test.Frame1",0,0,50,50);
+	textureManager.addFrameToTexture("test","Test.Frame2",300,300,50,50);
+	textureManager.addFrameToTexture("test","Test.Frame3",80,80,500,500);
+	textureManager.addFrameToTexture("test","Test.Frame4",400,200,500,500);
+	// create a sequence with previous added frames
+	textureManager.addFrameSequence("Test.Walk")
+								->addTextureFrame(textureManager.getTextureFrame("Test.Frame1"))
+								->addTextureFrame(textureManager.getTextureFrame("Test.Frame2"));
+
+	// create another sequence with previous added frames
+	textureManager.addFrameSequence("Test.Walk2")
+								->addTextureFrame(textureManager.getTextureFrame("Test.Frame3"))
+								->addTextureFrame(textureManager.getTextureFrame("Test.Frame4"));
+	// create one sprite with the full texture as image							
+	s=new NodeDrawable(string("Sprite 1"), TextureManager::getInstance().getTextureFrame(string("test2")), 130, 30);
+	addNode(s);
+	// create a sub sprite of the first sprite s
+	s_sub=(NodeDrawable*)s->addNode(new NodeDrawable(string("Sprite 2"), TextureManager::getInstance().getTextureFrame(string("test2")), 100, 100, 50, 50));
+	// add two animation player to the second sprite and activate animation player 1 for now
+	s_sub->addNode(new FramePlayer("testschwein.Walk", textureManager.getFrameSequence("testschwein.Walk"),50));
+	s_sub->addNode(new FramePlayer("Test.Walk2", textureManager.getFrameSequence("Test.Walk2"),1000, PlayerType::Forward));
+	s_sub->activateFramePlayer("testschwein.Walk");
+	// make sure the mehtod update will be called for the root scene
+	scheduleUpdate(true);
+}
+
+void MyScene::destroy() {
+	// nothing to do
+}
+
+void MyScene::update(double deltaTime) {
+	//s->moveDistanceXY(0.0, 20.0*(deltaTime/1000.0));
+	s_sub->moveDistanceXY(90.0*(deltaTime/1000.0),0);
+	if (s_sub->getX()>400) {
+		s_sub->setX(0.0);
+		// activate animation player 2 now
+		//s_sub->activateFramePlayer("Test.Walk2");
+	}
+	//s_sub->addAngle(180.0*(deltaTime/1000.0));
+	//if (s_sub->getAngle()>180.0) {
+	//	MyScene *s=new MyScene();
+	//	Director::getInstance()->switchScene(s);
+	//}
+}
 
 int main(int, char**) {
-	//init SDL2
-	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-		return 1;
-	}
-	// open window
-	SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
-	if (win == nullptr) {
-		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
-	// create renderer
-	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (ren == nullptr) {
-		SDL_DestroyWindow(win);
-		std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
-
-	TextureManager::getInstance().setSDLRenderer(ren);
-	TextureManager::getInstance().loadTexture("assets/test.png", "test");
-	TextureManager::getInstance().loadTexture("assets/test.png", "test2");
-
-	// load bitmap
-	//std::string imagePath = getResourcePath("Lesson1") + "test.png";
-	//SDL_Surface *bmp = SDL_LoadBMP("test.bmp");//SDL_LoadBMP("test.png"/*imagePath.c_str()""*/);
-	SDL_Surface *bmp = IMG_Load("assets/test.png");//SDL_LoadBMP("test.png"/*imagePath.c_str()""*/);
-	if (bmp == nullptr) {
-		SDL_DestroyRenderer(ren);
-		SDL_DestroyWindow(win);
-		std::cout << "SDL_LoadBMP Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
-	// create texture from surface (bitmap)
-	SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
-	SDL_FreeSurface(bmp);
-	if (tex == nullptr) {
-		SDL_DestroyRenderer(ren);
-		SDL_DestroyWindow(win);
-		std::cout << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return 1;
-	}
-	bool quit = false;
-
-	Node* n=new Node(string("root"));
-	n->addNode(new Node(string("N 1")))->addNode(new Node(string("N 1.1")));
-	n->addNode(new Node(string("N 2")))->addNode(new Node(string("N 2.1")));
-	n->searchNode(string("N 1.1"), true)->debugPrint();
-	//n->debugPrint();
-	
-
-	delete n;
-
-	while (!quit) {
-		SDL_Event e;
-		SDL_PollEvent(&e);
-		if (e.type == SDL_QUIT) {
-			quit = true;
-			std::cout << "SDL_QUIT" << endl;
-		}
-		if (e.type == SDL_KEYDOWN) {
-			quit = true;
-			std::cout << "SDL_KEYDOWN" << endl;
-		}
-		if (e.type == SDL_MOUSEBUTTONDOWN) {
-			quit = true;
-			std::cout << "SDL_MOUSEBUTTONDOWN" << endl;
-		}
-		//First clear the renderer
-		SDL_RenderClear(ren);
-		//Draw the texture
-		SDL_RenderCopy(ren, TextureManager::getInstance().getTexture(string("test2")), NULL, NULL);
-		//Update the screen
-		SDL_RenderPresent(ren);
-		if (quit==true) {
-			break;
-		}
-	}
-	SDL_DestroyTexture(tex);
-	SDL_DestroyRenderer(ren);
-	SDL_DestroyWindow(win);
-	SDL_Quit();
+	Director::getInstance()->initialize();
+	MyScene *s=new MyScene();
+	Director::getInstance()->runWithNode(s);
 	return 0;
 }

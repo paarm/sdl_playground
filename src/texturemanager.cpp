@@ -30,19 +30,36 @@ bool TextureManager::proofSDLRenderer() {
 	return true;
 }
 
-SDL_Texture* TextureManager::loadTexture(const char *pathName, const char* alias) {
-	SDL_Texture *rv=nullptr;
-	if (pathName && strlen(pathName)>1) {
-		if (alias) {
-			string al=string(alias);
-			rv=loadTexture(string(pathName), &al);
-		} else {
-			rv=loadTexture(string(pathName), nullptr);
-		}
+void TextureManager::queryTextureSize(SDL_Texture *rSDL_Texture, int *dx, int *dy) {
+	Uint32 	format;
+	int 	access;
+	if (rSDL_Texture) {
+		SDL_QueryTexture(rSDL_Texture, &format, &access, dx, dy);
+	} else {
+		(*dx)=0;
+		(*dy)=0;
 	}
-	return rv;
 }
 
+void TextureManager::addDefaultFrame(const string &pathName, const string *&alias, SDL_Texture* rSDL_Texture) {
+	int dx=0;
+	int dy=0;
+	queryTextureSize(rSDL_Texture, &dx, &dy);
+	if (alias) {
+		addFrameToTexture(pathName, *alias, 0, 0, dx, dy);
+	} else {
+		addFrameToTexture(pathName, pathName, 0, 0, dx, dy);
+	}
+}
+
+SDL_Texture *TextureManager::loadTexture(const string &pathName, const char*alias) {
+	if (alias) {
+		string sAlias(alias);
+		return loadTexture(pathName, &sAlias);
+	} else {
+		return loadTexture(pathName, (const string*)nullptr);
+	}
+}
 
 SDL_Texture *TextureManager::loadTexture(const string &pathName, const string *alias) {
 	SDL_Texture *rv=nullptr;
@@ -53,6 +70,7 @@ SDL_Texture *TextureManager::loadTexture(const string &pathName, const string *a
 			if (bmp == nullptr) {
 				std::cout << "IMG_Load Error: " << SDL_GetError() << std::endl;
 			} else {
+				SDL_SetSurfaceBlendMode(bmp,SDL_BLENDMODE_BLEND);
 				std::cout << "Load Texture: " << pathName;
 				if (alias) {
 					std::cout << " as alias: " <<*alias << std::endl;
@@ -66,6 +84,7 @@ SDL_Texture *TextureManager::loadTexture(const string &pathName, const string *a
 					if (alias) {
 						mAliasMap[*alias]=pathName;
 					}
+					addDefaultFrame(pathName, alias, rv);					
 				}
 				SDL_FreeSurface(bmp);
 			}
@@ -73,15 +92,8 @@ SDL_Texture *TextureManager::loadTexture(const string &pathName, const string *a
 			// texture already exists. Add only the alias if not exist anymore
 			std::cout << "Reuse already loaded Texture: " << pathName << " as alias: " << *alias << std::endl;
 			mAliasMap[*alias]=pathName;
+			addDefaultFrame(pathName, alias, rv);
 		}
-	}
-	return rv;
-}
-
-SDL_Texture* TextureManager::getTexture(const char*pathName) {
-	SDL_Texture *rv=nullptr;
-	if (pathName && strlen(pathName)>1) {
-		rv=getTexture(string(pathName));
 	}
 	return rv;
 }
