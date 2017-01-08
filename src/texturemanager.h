@@ -88,7 +88,37 @@ public:
 		}
 		return nullptr;
 	}
-	
+
+	FrameSequence *createAutomaticFramesAndSequence(const string &textureName, const string &sequenceName, int xFrameCount, int yFrameCount=1) {
+		string frameNamePrefix=textureName;
+		frameNamePrefix+=".frame";
+		int frameCount=addFramesAutomaticallyToTexture(textureName, frameNamePrefix, xFrameCount, yFrameCount);
+		return addFrameSequenceAutomatically(sequenceName, frameNamePrefix, frameCount);
+	}
+
+	int addFramesAutomaticallyToTexture(const string &textureName, const string &frameNamePrefix, int xFrameCount, int yFrameCount=1) {
+		SDL_Texture* rSDL_Texture=getTexture(textureName);
+		int frameCount=0;
+		if (rSDL_Texture && xFrameCount>0 && yFrameCount>0) {
+			int textX=0;
+			int textY=0;
+			queryTextureSize(rSDL_Texture, &textX, &textY);
+
+			int xFrameSize=textX/xFrameCount;
+			int yFrameSize=textY/yFrameCount;
+
+			for (int y=0;y<yFrameCount;y++) {
+				for (int x=0;x<xFrameCount;x++) {
+					string frameName=frameNamePrefix;
+					frameName+=frameCount;
+					addFrameToTexture(textureName, frameName, x*xFrameSize, y*yFrameSize, xFrameSize, yFrameSize);
+					frameCount++;
+				}
+			}
+		}
+		return frameCount;		
+	}
+
 	TextureFrame *addFrameToTexture(const string &textureName, const string &frameName, int x, int y, int dx, int dy) {
 		TextureFrame*rv=nullptr;
 		SDL_Texture* rSDL_Texture=getTexture(textureName);
@@ -114,6 +144,25 @@ public:
 		}
 		return rv;
 	}
+
+    FrameSequence *addFrameSequenceAutomatically(const string& rSequenceName, const string &frameNamePrefix, int count) {
+	    FrameSequence *rv=addFrameSequence(rSequenceName);
+		if (rv) {
+			for (int i=0;i<count;i++) {
+				string frameName=frameNamePrefix;
+				frameName+=i;
+				TextureFrame *textureFrame=getTextureFrame(frameName);
+				if (textureFrame) {
+					rv->addTextureFrame(textureFrame);			
+				} else {
+					break;
+				}
+			}
+		}
+		return rv;
+	}
+	
+
     FrameSequence *addFrameSequence(const string& rSequenceName) {
         const auto &it=mFrameSequenceMap.find(rSequenceName);
         if (it!=mFrameSequenceMap.end()) {

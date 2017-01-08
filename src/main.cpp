@@ -34,12 +34,18 @@ void MyScene::init() {
 	// reuse loaded texture and make it available via new alias
 	textureManager.loadTexture("assets/test.png", "test2");
 	textureManager.loadTexture("assets/testschwein.png", "testschwein");
+
+	textureManager.createAutomaticFramesAndSequence("testschwein", "testschwein.Walk", 11, 1);
+	//textureManager.addFrameAutomaticallyToTexture("testschwein", "testschwein.frame", 11, 1);
+	//textureManager.addFrameSequenceAutomatically("testschwein.Walk", "testschwein.frame", 11);
+
+
 	// setup source frames for this texture
-	for (int i=0;i<11;i++) {
-		textureManager.addFrameToTexture("testschwein","testschwein.Frame"+i,i*32,0,32,32);
-		textureManager.addFrameSequence("testschwein.Walk")
-									->addTextureFrame(textureManager.getTextureFrame("testschwein.Frame"+i));
-	}
+	//for (int i=0;i<11;i++) {
+	//	textureManager.addFrameToTexture("testschwein","testschwein.Frame"+i,i*32,0,32,32);
+	//	textureManager.addFrameSequence("testschwein.Walk")
+	//								->addTextureFrame(textureManager.getTextureFrame("testschwein.Frame"+i));
+	//}
 
 	textureManager.addFrameToTexture("test","Test.Frame1",0,0,50,50);
 	textureManager.addFrameToTexture("test","Test.Frame2",300,300,50,50);
@@ -73,11 +79,15 @@ void MyScene::destroy() {
 
 void MyScene::update(double deltaTime) {
 	//s->moveDistanceXY(0.0, 20.0*(deltaTime/1000.0));
-	s_sub->moveDistanceXY(90.0*(deltaTime/1000.0),0);
-	if (s_sub->getX()>400) {
-		s_sub->setX(0.0);
-		// activate animation player 2 now
-		//s_sub->activateFramePlayer("Test.Walk2");
+	if (s_sub) {
+		s_sub->moveDistanceXY(90.0*(deltaTime/1000.0),0);
+		if (s_sub->getX()>400) {
+			s_sub->deleteMeScheduled();
+			s_sub=(NodeDrawable*)s->addNode(new NodeDrawable(string("Sprite 33"), TextureManager::getInstance().getTextureFrame(string("test2")), 100, 100, 50, 50));;
+			//s_sub->setX(0.0);
+			// activate animation player 2 now
+			//s_sub->activateFramePlayer("Test.Walk2");
+		}
 	}
 	//s_sub->addAngle(180.0*(deltaTime/1000.0));
 	//if (s_sub->getAngle()>180.0) {

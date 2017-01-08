@@ -27,11 +27,13 @@ protected:
 
 class Node : NodeBase {
 private:
+	Node 	*mParentNode=nullptr;
 	string 	mName;
 	bool 	mScheduledUpdate=false;
 	void initChildNodeList();
 protected:
 	vector<Node*> *mChildNodes=nullptr;
+	vector<Node*> *mChildToDelete=nullptr;
 	virtual void update(double deltaTime) override;
 	virtual void destroy() override;
 public:
@@ -40,6 +42,8 @@ public:
 	Node();
 	virtual ~Node();
 	Node* addNode(Node *n);
+	void deleteMeScheduled();
+	void scheduleChildToDelete(Node *rToDeleteNode);
 	void deleteNode(Node *n);
 	void deleteChilds();
 	Node* searchNode(const string&name, bool searchInSub=false);

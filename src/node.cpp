@@ -35,9 +35,30 @@ void Node::initChildNodeList() {
 }
 
 Node* Node::addNode(Node *n) {
-	initChildNodeList();
-	mChildNodes->push_back(n);
+	if (n) {
+		n->mParentNode=this;
+		initChildNodeList();
+		mChildNodes->push_back(n);
+	}
 	return n;
+}
+
+void Node::deleteMeScheduled() {
+	if (mParentNode) {
+		mParentNode->scheduleChildToDelete(this);
+	}
+}
+
+void Node::scheduleChildToDelete(Node *rToDeleteNode) {
+	if (rToDeleteNode && mChildNodes) {
+		Node *n=searchNode(rToDeleteNode->mName, false);
+		if (n) {
+			if (!mChildToDelete) {
+				mChildToDelete=new vector<Node*>();
+			}
+			mChildToDelete->push_back(n);
+		} 
+	}
 }
 
 void Node::deleteNode(Node *n) {
@@ -79,6 +100,12 @@ void Node::debugPrint() {
 }
 
 void Node::updateInternal(double deltaTime) {
+	if (mChildNodes && mChildToDelete && mChildToDelete->size()>0) {
+		for (auto n : *mChildToDelete) {
+			deleteNode(n);
+		}
+		mChildToDelete->clear();
+	}
 	if (mScheduledUpdate) {
 		update(deltaTime);
 	}
