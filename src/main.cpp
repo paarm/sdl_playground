@@ -98,6 +98,8 @@ void MyScene::update(double deltaTime) {
 
 int main(int, char**) {
 	Director::getInstance()->initialize();
+	TextureManager::getInstance().loadTexture("assets/cursor.png", "cursor");
+	Director::getInstance()->setMousePointer(TextureManager::getInstance().getTexture("cursor"), MousePointerAlignment::Middle);
 	MyScene *s=new MyScene();
 	Director::getInstance()->runWithNode(s);
 	return 0;
