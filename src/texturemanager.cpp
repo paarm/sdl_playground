@@ -30,6 +30,16 @@ bool TextureManager::proofSDLRenderer() {
 	return true;
 }
 
+
+void TextureManager::queryTextureSizeAndFormat(SDL_Texture *rSDL_Texture, int *dx, int *dy, Uint32 *format) {
+	int 	access;
+	if (rSDL_Texture) {
+		SDL_QueryTexture(rSDL_Texture, format, &access, dx, dy);
+	} else {
+		(*dx)=0;
+		(*dy)=0;
+	}
+}
 void TextureManager::queryTextureSize(SDL_Texture *rSDL_Texture, int *dx, int *dy) {
 	Uint32 	format;
 	int 	access;

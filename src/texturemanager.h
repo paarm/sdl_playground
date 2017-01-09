@@ -51,7 +51,6 @@ private:
 	TextureManager();
 	bool proofSDLRenderer();
 	string* getPathNameFromAlias(const string *alias);
-	void queryTextureSize(SDL_Texture *rSDL_Texture, int *dx, int *dy);
 	void addDefaultFrame(const string &pathName, const string *&alias, SDL_Texture* rSDL_Texture);
 	void keepSourceInTextureRange(Frame &rFrame, int textX, int textY) {
 		rFrame.x=max(0,rFrame.x);
@@ -61,6 +60,8 @@ private:
 		// todo: proof dx, dy
 	}	
 public:
+	void queryTextureSizeAndFormat(SDL_Texture *rSDL_Texture, int *dx, int *dy, Uint32 *format);
+	void queryTextureSize(SDL_Texture *rSDL_Texture, int *dx, int *dy);
 	static TextureManager & getInstance() {
 		static TextureManager instance;
 		return instance;
